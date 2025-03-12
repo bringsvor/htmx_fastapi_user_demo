@@ -1,6 +1,8 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
 from functools import lru_cache
+from .keyvault_utils import key_vault
+
 
 class Settings(BaseSettings):
     # Database settings
@@ -33,6 +35,40 @@ class Settings(BaseSettings):
     BASE_URL: str = "http://localhost:8000"
     DEBUG: bool = False
     
+    # Use environment variables first, fall back to Key Vault
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        # Check if we should use Key Vault
+        use_keyvault = os.getenv("USE_KEYVAULT", "false").lower() == "true"
+        
+        if use_keyvault:
+            # Only fetch from Key Vault if not already set via environment variables
+            if not self.GOOGLE_CLIENT_ID:
+                vault_client_id = key_vault.get_secret("GOOGLE-CLIENT-ID")
+                if vault_client_id:
+                    self.GOOGLE_CLIENT_ID = vault_client_id
+            
+            if not self.GOOGLE_CLIENT_SECRET:
+                vault_client_secret = key_vault.get_secret("GOOGLE-CLIENT-SECRET")
+                if vault_client_secret:
+                    self.GOOGLE_CLIENT_SECRET = vault_client_secret
+
+            if not self.VIPPS_CLIENT_ID:
+                vault_client_id = key_vault.get_secret("VIPPS-CLIENT-ID")
+                if vault_client_id:
+                    self.VIPPS_CLIENT_ID = vault_client_id
+
+            if not self.VIPPS_CLIENT_SECRET:
+                vault_client_secret = key_vault.get_secret("VIPPS-CLIENT-SECRET")
+                if vault_client_secret:
+                    self.VIPPS_CLIENT_SECRET = vault_client_secret
+
+            if not self.SMTP_PASSWORD:
+                vault_smtp_password = key_vault.get_secret("SMTP-PASSWORD")
+                if vault_smtp_password:
+                    self.SMTP_PASSWORD = vault_smtp_password        
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
@@ -41,3 +77,5 @@ class Settings(BaseSettings):
 @lru_cache()
 def get_settings():
     return Settings()
+
+settings = get_settings()

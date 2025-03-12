@@ -50,3 +50,6 @@ jobs:
         resourceGroup: demohtmxrg
         containerAppName: htmx-fastapi-app
         imageToDeploy: ghcr.io/${{ github.repository_owner }}/htmx-fastapi-app:${{ github.sha }}
+        environmentVariables: |
+          USE_KEYVAULT=true
+          AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/

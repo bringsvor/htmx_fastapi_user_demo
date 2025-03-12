@@ -19,3 +19,5 @@ pytest-asyncio
 httpx
 pytest-mock
 pytest-cov
+azure-identity>=1.12.0
+azure-keyvault-secrets>=4.6.0
