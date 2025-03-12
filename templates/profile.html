@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">User Profile</h4>
+                    <a href="/dashboard" class="btn btn-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3 text-center">
+                            {% if user.picture %}
+                            <img src="{{ user.picture }}" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 140px; height: 140px; object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white" style="width: 140px; height: 140px; font-size: 3.5rem; margin: 0 auto;">
+                                {{ user.name[0] if user.name else user.email[0] }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h3>{{ user.name or 'User' }}</h3>
+                            <p class="text-muted">{{ user.email }}</p>
+                            
+                            <div class="badge {{ 'bg-success' if user.is_verified else 'bg-warning text-dark' }} mb-2">
+                                {{ 'Verified Account' if user.is_verified else 'Unverified Account' }}
+                            </div>
+                            
+                            {% if user.is_superuser %}
+                            <div class="badge bg-danger mb-2 ms-1">Admin</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5 class="mt-4">Account Information</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 30%">User ID</th>
+                                    <td>{{ user.id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>{{ user.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Name</th>
+                                    <td>{{ user.name or 'Not provided' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        {% if user.is_active %}
+                                        <span class="text-success"><i class="fas fa-check-circle me-1"></i> Active</span>
+                                        {% else %}
+                                        <span class="text-danger"><i class="fas fa-times-circle me-1"></i> Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Authentication</th>
+                                    <td>Google OAuth</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="mt-4 d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/logout" class="btn btn-danger">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

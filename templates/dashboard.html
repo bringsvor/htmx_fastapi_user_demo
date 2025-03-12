@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Dashboard</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Welcome, {{ user.name or user.email }}</h5>
+                    {% if user.picture %}
+                    <img src="{{ user.picture }}" alt="Profile Picture" class="img-thumbnail" style="width: 100px; height: 100px;">
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        <h6>Your Profile Information:</h6>
+                        <ul>
+                            <li>Email: {{ user.email }}</li>
+                            <li>Name: {{ user.name or 'Not provided' }}</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button class="btn btn-primary" 
+                                hx-get="/api/dashboard-data" 
+                                hx-trigger="click" 
+                                hx-target="#dashboard-content"
+                                hx-swap="innerHTML">
+                            Load Dashboard Data
+                        </button>
+                        
+                        <div id="dashboard-content" class="mt-3">
+                            <!-- HTMX will load content here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

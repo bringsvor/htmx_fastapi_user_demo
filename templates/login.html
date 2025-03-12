@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Login</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" action="/auth/local/login">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ email or '' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="text-end mt-1">
+                                <a href="/auth/forgot-password" class="text-decoration-none small">Forgot password?</a>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Login</button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 text-center">
+                        <p>Don't have an account? <a href="/auth/local/register" class="text-decoration-none">Register</a></p>
+                        <p>Need to verify your email? <a href="/auth/request-verify-token" class="text-decoration-none">Resend verification</a></p>
+                        <p>Or login with:</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="/auth/google/login" class="btn btn-sm btn-danger">
+                                <i class="fab fa-google me-1"></i> Google
+                            </a>
+                            
+                            {% if vipps_enabled %}
+                            <a href="/auth/vipps/login" class="btn btn-sm" style="background-color: #ff5b24; border-color: #ff5b24; color: white;">
+                                <i class="fas fa-mobile-alt me-1"></i> Vipps
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

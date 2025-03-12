@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Welcome to Our Application</h3>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">FastAPI with Google OAuth, HTMX, and Jinja2</h5>
+                    <p class="card-text">
+                        This is a demonstration of a modern web application built with:
+                    </p>
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item">
+                            <i class="fas fa-bolt text-primary me-2"></i>
+                            <strong>FastAPI</strong> - High performance, easy to learn, fast to code API framework
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fab fa-google text-danger me-2"></i>
+                            <strong>Google OAuth</strong> - Simple and secure authentication
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-code text-success me-2"></i>
+                            <strong>HTMX</strong> - Dynamic content without writing JavaScript
+                        </li>
+                        <li class="list-group-item">
+                            <i class="fas fa-file-code text-info me-2"></i>
+                            <strong>Jinja2</strong> - Powerful template engine
+                        </li>
+                    </ul>
+                    
+                    <div class="d-grid gap-2">
+                        <a href="/login" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login to Get Started
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

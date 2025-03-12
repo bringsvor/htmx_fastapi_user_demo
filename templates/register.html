@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Create an Account</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" action="/auth/local/register">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ email or '' }}" required>
+                            <div class="form-text">We'll never share your email with anyone else.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name (optional)</label>
+                            <input type="text" class="form-control" id="name" name="name" value="{{ name or '' }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                            <div class="form-text">Password must be at least 8 characters long.</div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 text-center">
+                        <p>Already have an account? <a href="/auth/local/login" class="text-decoration-none">Login</a></p>
+                        <p>Or login with:</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="/auth/google/login" class="btn btn-sm btn-danger">
+                                <i class="fab fa-google me-1"></i> Google
+                            </a>
+                            
+                            {% if vipps_enabled %}
+                            <a href="/auth/vipps/login" class="btn btn-sm" style="background-color: #ff5b24; border-color: #ff5b24; color: white;">
+                                <i class="fas fa-mobile-alt me-1"></i> Vipps
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
