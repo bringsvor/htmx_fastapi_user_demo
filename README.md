@@ -1,4 +1,5 @@
-Authentication Flow Implementation Summary:
+
+---Authentication Flow Implementation Summary:
 
 1. Email Verification
    - User registers with email/password
