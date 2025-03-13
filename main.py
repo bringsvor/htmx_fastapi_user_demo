@@ -9,6 +9,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import BackgroundTasks
 
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+
+
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from contextlib import asynccontextmanager
@@ -30,6 +34,21 @@ from users import cookie_auth_backend, bearer_auth_backend, get_user_manager, Us
 
 # Import from auth module
 from auth import google_router, vipps_router, local_router
+
+# Azure Key Vault configuration
+DEBUG_KEY_VAULT_URL = "https://hemmelegfastapi.vault.azure.net/"
+# Create a DefaultAzureCredential object
+try:
+    credential = DefaultAzureCredential()
+except Exception as e:
+    print(f"Error creating credentials: {e}")
+
+# Create a SecretClient
+try:
+    secret_client = SecretClient(vault_url=DEBUG_KEY_VAULT_URL, credential=credential)
+except Exception as e:
+    print(f"Error creating SecretClient: {e}")
+
 
 settings = get_settings()
 
@@ -502,6 +521,25 @@ def setup_frontend_routes(app: FastAPI, templates, optional_user, current_active
                 "request_protocol": "https" if request.headers.get("x-forwarded-proto") == "https" else "http"
             })
         return JSONResponse({"debug": "disabled"})
+    
+    @app.get("/get-secret/{secret_name}")
+    async def get_secret(secret_name: str):
+        try:
+            # Retrieve the secret
+            secret = secret_client.get_secret(secret_name)
+            return {"secret_value": secret.value}
+        except Exception as e:
+            return {"error": str(e)}
+
+    # Troubleshooting helper endpoint
+    @app.get("/check-azure-auth")
+    async def check_azure_auth():
+        try:
+            # Attempt to get a token
+            token = credential.get_token("https://vault.azure.net/.default")
+            return {"status": "Authentication successful", "token_type": token.token_type}
+        except Exception as e:
+            return {"status": "Authentication failed", "error": str(e)}    
 
 # Create the FastAPI application
 app = create_app()
