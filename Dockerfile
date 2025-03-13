@@ -24,8 +24,12 @@ RUN apt-get update && apt-get install -y \
 # Copy application code
 COPY . .
 
+
+# Create static directory if it doesn't exist
+RUN mkdir -p static
+
 # Expose the port your FastAPI app runs on
-EXPOSE 8000
+EXPOSE 80
 
 # Command to run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
