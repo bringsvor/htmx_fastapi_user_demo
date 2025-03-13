@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import time
 from typing import List, Optional
 from fastapi import FastAPI, Form, Request, Depends, Response, status, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -452,6 +453,7 @@ def setup_frontend_routes(app: FastAPI, templates, optional_user, current_active
         """
         return HTMLResponse(content=html_content)
 
+
     @app.get("/test-keyvault")
     async def test_keyvault():
         results = {"status": "testing"}
@@ -463,16 +465,21 @@ def setup_frontend_routes(app: FastAPI, templates, optional_user, current_active
         
             # Only test if Key Vault is enabled
             if os.getenv("USE_KEYVAULT", "").lower() == "true":
-                from keyvault_utils import key_vault
-            
-                # Try to fetch a secret
-                start_time = time.time()
-                secret = key_vault.get_secret("GOOGLE-CLIENT-ID")
-                end_time = time.time()
-            
-                results["key_vault_accessible"] = True
-                results["secret_exists"] = bool(secret)
-                results["access_time_ms"] = round((end_time - start_time) * 1000)
+                try:
+                    import keyvault_utils
+                    # Check if key_vault is defined in the module
+                    if hasattr(keyvault_utils, 'key_vault'):
+                        key_vault = keyvault_utils.key_vault
+                        # Try to fetch a secret
+                        secret = key_vault.get_secret("GOOGLE-CLIENT-ID")
+                        results["key_vault_accessible"] = True
+                        results["secret_exists"] = bool(secret)
+                    else:
+                        results["status"] = "error"
+                        results["error"] = "key_vault not defined in keyvault_utils module"
+                except ImportError as e:
+                    results["status"] = "error"
+                    results["error"] = str(e)
             else:
                 results["status"] = "Key Vault not enabled (USE_KEYVAULT != true)"
         except Exception as e:
@@ -482,6 +489,19 @@ def setup_frontend_routes(app: FastAPI, templates, optional_user, current_active
             results["traceback"] = traceback.format_exc()
     
         return results
+
+    
+
+    @app.get("/debug-google", include_in_schema=False)
+    async def debug_google(request: Request):
+        if os.getenv("DEBUG", "false").lower() == "true":
+            return {
+                "google_client_id": os.getenv("GOOGLE_CLIENT_ID", "")[:10] + "..." if os.getenv("GOOGLE_CLIENT_ID") else "Not set",
+                "google_client_secret_set": bool(os.getenv("GOOGLE_CLIENT_SECRET")),
+                "app_host": request.headers.get("host"),
+                "request_protocol": "https" if request.headers.get("x-forwarded-proto") == "https" else "http"
+            }
+        return {"debug": "disabled"}
 
 # Create the FastAPI application
 app = create_app()
