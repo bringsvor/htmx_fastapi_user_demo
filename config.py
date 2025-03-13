@@ -1,7 +1,9 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
 from functools import lru_cache
-from .keyvault_utils import key_vault
+import os
+from keyvault_utils import KeyVaultClient
+
 
 
 class Settings(BaseSettings):
@@ -15,7 +17,7 @@ class Settings(BaseSettings):
     # Google OAuth settings
     GOOGLE_CLIENT_ID: str
     GOOGLE_CLIENT_SECRET: str
-    CALLBACK_URL: str = "http://localhost:8000/auth/google/callback"
+    GOOGLE_CALLBACK_URL: str = "http://localhost:8000/auth/google/callback"
     
     # Vipps OAuth settings
     VIPPS_CLIENT_ID: Optional[str] = None
@@ -34,6 +36,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "FastAPI HTMX App"
     BASE_URL: str = "http://localhost:8000"
     DEBUG: bool = False
+    USE_KEYVAULT: bool = False
+    AZURE_KEYVAULT_URL: str = ''
     
     # Use environment variables first, fall back to Key Vault
     def __init__(self, **kwargs):
@@ -43,6 +47,8 @@ class Settings(BaseSettings):
         use_keyvault = os.getenv("USE_KEYVAULT", "false").lower() == "true"
         
         if use_keyvault:
+            # TODO Create a singleton instance
+            key_vault = KeyVaultClient()
             # Only fetch from Key Vault if not already set via environment variables
             if not self.GOOGLE_CLIENT_ID:
                 vault_client_id = key_vault.get_secret("GOOGLE-CLIENT-ID")

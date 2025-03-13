@@ -87,7 +87,9 @@ def create_app(init_db=True):
     
     # Jinja2 templates
     templates = Jinja2Templates(directory="templates")
+    urltext = f'using Azure Keyvault {settings.AZURE_KEYVAULT_URL}'
     
+    logger.info(f"Wiring authentication {urltext if settings.USE_KEYVAULT else 'using local env'}")
     # Authentication backend setup
     cookie_transport = CookieTransport(
         cookie_name="auth",

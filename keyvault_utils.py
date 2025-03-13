@@ -46,6 +46,3 @@ class KeyVaultClient:
             print(f"Error retrieving secret {secret_name}: {e}")
             # Return None if the secret can't be retrieved
             return None
-
-# Create a singleton instance
-key_vault = KeyVaultClient()

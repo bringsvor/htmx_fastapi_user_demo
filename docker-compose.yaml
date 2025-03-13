@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount your Azure config directory to make DefaultAzureCredential work
+      - ~/.azure:/root/.azure
+    environment:
+      - USE_KEYVAULT=true
+      - AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/
+      - DEBUG=true

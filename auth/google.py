@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 async def login_google():
     """Google login redirect"""
     return RedirectResponse(await google_oauth_client.get_authorization_url(
-        settings.CALLBACK_URL, 
+        settings.GOOGLE_CALLBACK_URL, 
         scope=["email", "profile"]
     ))
 
