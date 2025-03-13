@@ -43,11 +43,16 @@ class KeyVaultClient:
                 # Re-raise so the application knows authentication failed
                 raise
 
-
     def _test_connection(self):
         """Test the connection to Key Vault."""
-        # List a single secret to verify connection works
-        next(self.client.list_properties_of_secrets(max_results=1), None)
+        try:
+            # Just get a list but don't use max_results parameter
+            secrets_list = list(self.client.list_properties_of_secrets())
+            return True
+        except Exception as e:
+            print(f"Error testing Key Vault connection: {e}")
+            raise
+    
     
     def get_secret(self, secret_name):
         """

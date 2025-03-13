@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from contextlib import asynccontextmanager
 import logging
+import os
 import jwt
 from fastapi_users.db import SQLAlchemyUserDatabase
 
