@@ -9,10 +9,19 @@ from fastapi_users.db import SQLAlchemyUserDatabase
 from config import get_settings
 from auth.utils import create_auth_cookie_response
 
+# Logger setup
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 settings = get_settings()
 
 # Create router for Google authentication
 google_router = APIRouter(prefix="/auth/google", tags=["auth"])
+
+logger.info(f'Google auth ID = {settings.GOOGLE_CLIENT_ID}')
 
 # Set up Google OAuth client
 google_oauth_client = GoogleOAuth2(
@@ -20,8 +29,6 @@ google_oauth_client = GoogleOAuth2(
     settings.GOOGLE_CLIENT_SECRET,
 )
 
-# Logger setup
-logger = logging.getLogger(__name__)
 
 @google_router.get("/login")
 async def login_google():

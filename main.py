@@ -3,7 +3,7 @@
 import time
 from typing import List, Optional
 from fastapi import FastAPI, Form, Request, Depends, Response, status, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -473,7 +473,7 @@ def setup_frontend_routes(app: FastAPI, templates, optional_user, current_active
                         # Try to fetch a secret
                         secret = key_vault.get_secret("GOOGLE-CLIENT-ID")
                         results["key_vault_accessible"] = True
-                        results["secret_exists"] = bool(secret)
+                        results["secret_exists"] = bool(secret)                        
                     else:
                         results["status"] = "error"
                         results["error"] = "key_vault not defined in keyvault_utils module"
@@ -488,20 +488,20 @@ def setup_frontend_routes(app: FastAPI, templates, optional_user, current_active
             results["error"] = str(e)
             results["traceback"] = traceback.format_exc()
     
-        return results
+        return JSONResponse(results)
 
     
 
     @app.get("/debug-google", include_in_schema=False)
     async def debug_google(request: Request):
         if os.getenv("DEBUG", "false").lower() == "true":
-            return {
+            return JSONResponse({
                 "google_client_id": os.getenv("GOOGLE_CLIENT_ID", "")[:10] + "..." if os.getenv("GOOGLE_CLIENT_ID") else "Not set",
                 "google_client_secret_set": bool(os.getenv("GOOGLE_CLIENT_SECRET")),
                 "app_host": request.headers.get("host"),
                 "request_protocol": "https" if request.headers.get("x-forwarded-proto") == "https" else "http"
-            }
-        return {"debug": "disabled"}
+            })
+        return JSONResponse({"debug": "disabled"})
 
 # Create the FastAPI application
 app = create_app()
