@@ -451,6 +451,37 @@ def setup_frontend_routes(app: FastAPI, templates, optional_user, current_active
         """
         return HTMLResponse(content=html_content)
 
+    @app.get("/test-keyvault")
+    async def test_keyvault():
+        results = {"status": "testing"}
+    
+        try:
+            # Check if Key Vault environment variable is set
+            results["azure_keyvault_url"] = os.getenv("AZURE_KEYVAULT_URL", "Not set")
+            results["use_keyvault"] = os.getenv("USE_KEYVAULT", "Not set")
+        
+            # Only test if Key Vault is enabled
+            if os.getenv("USE_KEYVAULT", "").lower() == "true":
+                from keyvault_utils import key_vault
+            
+                # Try to fetch a secret
+                start_time = time.time()
+                secret = key_vault.get_secret("GOOGLE-CLIENT-ID")
+                end_time = time.time()
+            
+                results["key_vault_accessible"] = True
+                results["secret_exists"] = bool(secret)
+                results["access_time_ms"] = round((end_time - start_time) * 1000)
+            else:
+                results["status"] = "Key Vault not enabled (USE_KEYVAULT != true)"
+        except Exception as e:
+            import traceback
+            results["status"] = "error"
+            results["error"] = str(e)
+            results["traceback"] = traceback.format_exc()
+    
+        return results
+
 # Create the FastAPI application
 app = create_app()
 
