@@ -37,6 +37,10 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      USE_KEYVAULT: true
+      AZURE_KEYVAULT_URL: https://hemmelegfastapi.vault.azure.net/
+
     
     steps:
     - name: Azure Login
