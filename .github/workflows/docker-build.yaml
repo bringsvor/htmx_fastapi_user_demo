@@ -63,5 +63,5 @@ jobs:
         environmentVariables: |
           USE_KEYVAULT=true
           AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/
-          AZURE_CLIENT_ID=${{ secrets.AZURE-CLIENT-ID }}
+          AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
           GOOGLE_CALLBACK_URL=${{ steps.geturl.outputs.CALLBACK_URL }}
