@@ -8,7 +8,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8000:80"
     volumes:
       # Mount your Azure config directory to make DefaultAzureCredential work
       - ~/.azure:/root/.azure
@@ -16,3 +16,6 @@ services:
       - USE_KEYVAULT=true
       - AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/
       - DEBUG=true
+      - AZURE_CLIENT_ID=d955c124-90c3-4b5e-9f6f-d4eb8ed1c92f
+      - AZURE_CLIENT_SECRET=vEN8Q~Lm0l.tjgVaI.2JwLD7-whrharMKWdiCb6R
+      - AZURE_TENANT_ID=daeb4206-d246-4e36-9a15-21092263e043

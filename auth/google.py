@@ -47,7 +47,7 @@ async def auth_google_callback(request: Request, response: Response):
         code = request.query_params.get("code")
         
         # Exchange code for token
-        token_data = await google_oauth_client.get_access_token(code, settings.CALLBACK_URL)
+        token_data = await google_oauth_client.get_access_token(code, settings.GOOGLE_CALLBACK_URL)
         access_token = token_data["access_token"]
         
         logger.info(f"Successfully obtained access token")
