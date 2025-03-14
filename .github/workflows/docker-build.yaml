@@ -51,9 +51,23 @@ jobs:
     - name: Get Container App URL
       id: geturl
       run: |
-        FQDN=$(az containerapp show --name htmx-fastapi-app --resource-group demohtmxrg --query properties.configuration.ingress.fqdn -o tsv)
-        echo "CALLBACK_URL=https://$FQDN/auth/google/callback" >> $GITHUB_OUTPUT
-        
+        # Add error checking and verbose output
+        echo "Retrieving Container App FQDN..."
+        FQDN=$(az containerapp show --name htmx-fastapi-app --resource-group demohtmxrg --query "properties.configuration.ingress.fqdn" -o tsv)
+    
+        # Verify we got a value
+        if [ -z "$FQDN" ]; then
+          echo "Error: Could not retrieve FQDN for the Container App"
+          exit 1
+        fi
+    
+        echo "FQDN retrieved: $FQDN"
+        echo "Setting callback URL..."
+        CALLBACK_URL="https://$FQDN/auth/google/callback"
+        echo "Callback URL: $CALLBACK_URL"
+    
+        # Set the output variable correctly
+        echo "CALLBACK_URL=$CALLBACK_URL" >> $GITHUB_OUTPUT
 
     - name: Prepare environment variables
       run: |
