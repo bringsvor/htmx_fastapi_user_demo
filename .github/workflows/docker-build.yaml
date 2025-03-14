@@ -47,6 +47,12 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Get Container App URL
+      id: geturl
+      run: |
+        FQDN=$(az containerapp show --name htmx-fastapi-app --resource-group demohtmxrg --query properties.configuration.ingress.fqdn -o tsv)
+        echo "CALLBACK_URL=https://$FQDN/auth/google/callback" >> $GITHUB_OUTPUT
         
     - name: Deploy to Azure Container Apps
       uses: azure/container-apps-deploy-action@v1
@@ -57,3 +63,5 @@ jobs:
         environmentVariables: |
           USE_KEYVAULT=true
           AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/
+          AZURE_CLIENT_ID=${{ secrets.AZURE-CLIENT-ID }}
+          GOOGLE_CALLBACK_URL=${{ steps.geturl.outputs.CALLBACK_URL }}
