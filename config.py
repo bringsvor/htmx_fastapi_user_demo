@@ -2,9 +2,12 @@ from pydantic_settings import BaseSettings
 from typing import Optional
 from functools import lru_cache
 import os
-from keyvault_utils import KeyVaultClient
+import logging
+from keyvault_utils import key_vault  # Import the singleton instance directly
 
-
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class Settings(BaseSettings):
     # Database settings
@@ -15,8 +18,8 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     
     # Google OAuth settings
-    GOOGLE_CLIENT_ID: str
-    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    GOOGLE_CLIENT_SECRET: Optional[str] = None
     GOOGLE_CALLBACK_URL: str = "http://localhost:8000/auth/google/callback"
     
     # Vipps OAuth settings
@@ -41,39 +44,60 @@ class Settings(BaseSettings):
     
     # Use environment variables first, fall back to Key Vault
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        # First attempt to load environment variables
+        logger.info("Initializing Settings")
         
         # Check if we should use Key Vault
         use_keyvault = os.getenv("USE_KEYVAULT", "false").lower() == "true"
+        logger.info(f"USE_KEYVAULT: {use_keyvault}")
         
+        # Pre-load values from KeyVault if needed
         if use_keyvault:
-            # TODO Create a singleton instance
-            key_vault = KeyVaultClient()
-            # Only fetch from Key Vault if not already set via environment variables
-            if not self.GOOGLE_CLIENT_ID:
-                vault_client_id = key_vault.get_secret("GOOGLE-CLIENT-ID")
-                if vault_client_id:
-                    self.GOOGLE_CLIENT_ID = vault_client_id
-            
-            if not self.GOOGLE_CLIENT_SECRET:
-                vault_client_secret = key_vault.get_secret("GOOGLE-CLIENT-SECRET")
-                if vault_client_secret:
-                    self.GOOGLE_CLIENT_SECRET = vault_client_secret
-
-            if not self.VIPPS_CLIENT_ID:
-                vault_client_id = key_vault.get_secret("VIPPS-CLIENT-ID")
-                if vault_client_id:
-                    self.VIPPS_CLIENT_ID = vault_client_id
-
-            if not self.VIPPS_CLIENT_SECRET:
-                vault_client_secret = key_vault.get_secret("VIPPS-CLIENT-SECRET")
-                if vault_client_secret:
-                    self.VIPPS_CLIENT_SECRET = vault_client_secret
-
-            if not self.SMTP_PASSWORD:
-                vault_smtp_password = key_vault.get_secret("SMTP-PASSWORD")
-                if vault_smtp_password:
-                    self.SMTP_PASSWORD = vault_smtp_password        
+            logger.info("Attempting to load secrets from KeyVault")
+            try:
+                # Fetch from KeyVault before Pydantic initialization
+                client_id_from_vault = key_vault.get_secret("GOOGLE_CLIENT_ID")
+                if client_id_from_vault:
+                    logger.info("Found GOOGLE_CLIENT_ID in KeyVault")
+                    # Set in environment so Pydantic picks it up
+                    os.environ["GOOGLE_CLIENT_ID"] = client_id_from_vault
+                else:
+                    # Try with hyphen
+                    client_id_from_vault = key_vault.get_secret("GOOGLE-CLIENT-ID")
+                    if client_id_from_vault:
+                        logger.info("Found GOOGLE-CLIENT-ID in KeyVault")
+                        os.environ["GOOGLE_CLIENT_ID"] = client_id_from_vault
+                
+                client_secret_from_vault = key_vault.get_secret("GOOGLE_CLIENT_SECRET")
+                if client_secret_from_vault:
+                    logger.info("Found GOOGLE_CLIENT_SECRET in KeyVault")
+                    os.environ["GOOGLE_CLIENT_SECRET"] = client_secret_from_vault
+                else:
+                    # Try with hyphen
+                    client_secret_from_vault = key_vault.get_secret("GOOGLE-CLIENT-SECRET")
+                    if client_secret_from_vault:
+                        logger.info("Found GOOGLE-CLIENT-SECRET in KeyVault")
+                        os.environ["GOOGLE_CLIENT_SECRET"] = client_secret_from_vault
+                
+                # Do the same for other secrets
+                for env_var, vault_key in [
+                    ("VIPPS_CLIENT_ID", "VIPPS-CLIENT-ID"),
+                    ("VIPPS_CLIENT_SECRET", "VIPPS-CLIENT-SECRET"),
+                    ("SMTP_PASSWORD", "SMTP-PASSWORD")
+                ]:
+                    secret_value = key_vault.get_secret(vault_key)
+                    if secret_value:
+                        logger.info(f"Found {vault_key} in KeyVault")
+                        os.environ[env_var] = secret_value
+                
+            except Exception as e:
+                logger.error(f"Error loading secrets from KeyVault: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
+        
+        # Now call Pydantic's init which will use the updated environment variables
+        super().__init__(**kwargs)
+        logger.info("Settings initialized successfully")
 
     class Config:
         env_file = ".env"
@@ -82,6 +106,7 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings():
+    logger.info("Creating settings instance")
     return Settings()
 
 settings = get_settings()
