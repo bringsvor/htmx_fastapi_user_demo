@@ -54,14 +54,24 @@ jobs:
         FQDN=$(az containerapp show --name htmx-fastapi-app --resource-group demohtmxrg --query properties.configuration.ingress.fqdn -o tsv)
         echo "CALLBACK_URL=https://$FQDN/auth/google/callback" >> $GITHUB_OUTPUT
         
-    - name: Deploy to Azure Container Apps
-      uses: azure/container-apps-deploy-action@v1
-      with:
-        resourceGroup: demohtmxrg
-        containerAppName: htmx-fastapi-app
-        imageToDeploy: ghcr.io/${{ github.repository_owner }}/htmx-fastapi-app:${{ github.sha }}
-        environmentVariables: |
-          USE_KEYVAULT=true
-          AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/
-          AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}
-          GOOGLE_CALLBACK_URL=${{ steps.geturl.outputs.CALLBACK_URL }}
+
+    - name: Prepare environment variables
+      run: |
+        CALLBACK_URL="https://$FQDN/auth/google/callback"
+        echo "Prepared environment variables:"
+        echo "USE_KEYVAULT=true"
+        echo "AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/"
+        echo "AZURE_CLIENT_ID=****" # Don't print the actual secret
+        echo "GOOGLE_CALLBACK_URL=$CALLBACK_URL"
+    
+        # Create a single string for all environment variables
+        ENV_VARS="USE_KEYVAULT=true AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/ AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }} GOOGLE_CALLBACK_URL=$CALLBACK_URL"
+        echo "ENV_VARS=$ENV_VARS" >> $GITHUB_ENV
+
+    - name: Deploy with Azure CLI
+      run: |
+        az containerapp update \
+          --name htmx-fastapi-app \
+          --resource-group demohtmxrg \
+          --image ghcr.io/${{ github.repository_owner }}/htmx-fastapi-app:${{ github.sha }} \
+          --set-env-vars ${{ env.ENV_VARS }}
