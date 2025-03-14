@@ -129,12 +129,30 @@ class KeyVaultClient:
             return None
         
         try:
+            # First try with the original name
             logger.info(f"Attempting to get secret: {secret_name}")
-            secret = self.client.get_secret(secret_name)
-            logger.info(f"Successfully retrieved secret: {secret_name}")
-            return secret.value
+            try:
+                secret = self.client.get_secret(secret_name)
+                logger.info(f"Successfully retrieved secret: {secret_name}")
+                return secret.value
+            except Exception as original_error:
+                # If that fails, try with underscores replaced by hyphens
+                hyphenated_name = secret_name.replace('_', '-')
+                if hyphenated_name != secret_name:
+                    logger.info(f"Original name failed, trying with hyphens: {hyphenated_name}")
+                    try:
+                        secret = self.client.get_secret(hyphenated_name)
+                        logger.info(f"Successfully retrieved secret with hyphenated name: {hyphenated_name}")
+                        return secret.value
+                    except Exception as hyphen_error:
+                        logger.error(f"Error retrieving secret with hyphenated name {hyphenated_name}: {hyphen_error}")
+                
+                # If we got here, both attempts failed
+                logger.error(f"Error retrieving secret {secret_name}: {original_error}")
+                
+            return None
         except Exception as e:
-            logger.error(f"Error retrieving secret {secret_name}: {e}")
+            logger.error(f"Unexpected error in get_secret for {secret_name}: {e}")
             import traceback
             logger.error(traceback.format_exc())
             return None
