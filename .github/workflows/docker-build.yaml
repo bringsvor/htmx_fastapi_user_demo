@@ -51,36 +51,30 @@ jobs:
     - name: Get Container App URL
       id: geturl
       run: |
-        # Add error checking and verbose output
         echo "Retrieving Container App FQDN..."
         FQDN=$(az containerapp show --name htmx-fastapi-app --resource-group demohtmxrg --query "properties.configuration.ingress.fqdn" -o tsv)
-    
-        # Verify we got a value
-        if [ -z "$FQDN" ]; then
-          echo "Error: Could not retrieve FQDN for the Container App"
-          exit 1
-        fi
-    
         echo "FQDN retrieved: $FQDN"
-        echo "Setting callback URL..."
         CALLBACK_URL="https://$FQDN/auth/google/callback"
         echo "Callback URL: $CALLBACK_URL"
-    
-        # Set the output variable correctly
-        echo "CALLBACK_URL=$CALLBACK_URL" >> $GITHUB_OUTPUT
+        # Set both as outputs
+        echo "callback_url=$CALLBACK_URL" >> $GITHUB_OUTPUT
+        echo "fqdn=$FQDN" >> $GITHUB_OUTPUT
 
     - name: Prepare environment variables
       run: |
-        CALLBACK_URL="https://$FQDN/auth/google/callback"
+        # Use the outputs from the previous step
+        CALLBACK_URL="${{ steps.geturl.outputs.callback_url }}"
         echo "Prepared environment variables:"
         echo "USE_KEYVAULT=true"
         echo "AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/"
-        echo "AZURE_CLIENT_ID=****" # Don't print the actual secret
+        echo "AZURE_CLIENT_ID=****"
         echo "GOOGLE_CALLBACK_URL=$CALLBACK_URL"
     
-        # Create a single string for all environment variables
-        ENV_VARS="USE_KEYVAULT=true AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/ AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }} GOOGLE_CALLBACK_URL=$CALLBACK_URL"
-        echo "ENV_VARS=$ENV_VARS" >> $GITHUB_ENV
+        # Create env vars for the next step
+        echo "USE_KEYVAULT=true" >> $GITHUB_ENV
+        echo "AZURE_KEYVAULT_URL=https://hemmelegfastapi.vault.azure.net/" >> $GITHUB_ENV
+        echo "AZURE_CLIENT_ID=${{ secrets.AZURE_CLIENT_ID }}" >> $GITHUB_ENV
+        echo "GOOGLE_CALLBACK_URL=$CALLBACK_URL" >> $GITHUB_ENV
 
     - name: Deploy with Azure CLI
       run: |
@@ -88,4 +82,7 @@ jobs:
           --name htmx-fastapi-app \
           --resource-group demohtmxrg \
           --image ghcr.io/${{ github.repository_owner }}/htmx-fastapi-app:${{ github.sha }} \
-          --set-env-vars ${{ env.ENV_VARS }}
+          --set-env-vars "USE_KEYVAULT=${{ env.USE_KEYVAULT }}" \
+          "AZURE_KEYVAULT_URL=${{ env.AZURE_KEYVAULT_URL }}" \
+          "AZURE_CLIENT_ID=${{ env.AZURE_CLIENT_ID }}" \
+          "GOOGLE_CALLBACK_URL=${{ env.GOOGLE_CALLBACK_URL }}"
