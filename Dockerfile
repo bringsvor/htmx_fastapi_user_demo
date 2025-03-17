@@ -24,7 +24,6 @@ RUN apt-get update && apt-get install -y \
 # Copy application code
 COPY . .
 
-
 # Create static directory if it doesn't exist
 RUN mkdir -p static
 
